@@ -1,0 +1,1 @@
+# Farhad-Exchange Trade API's Implementation.
