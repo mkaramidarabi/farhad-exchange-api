@@ -11,5 +11,5 @@ def query_string(content):
     signature = hmac.new(
         secret.encode("utf-8"), content.encode("utf-8"), hashlib.sha256
     ).hexdigest()
-    print(signature)
+    # print(signature)
     return signature
