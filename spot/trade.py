@@ -57,7 +57,7 @@ def check_user_balance(symbol, receive_window):
 
 
 def get_market_price(symbol, receive_window):
-    url = base + "/get-market-price"
+    url = base + "/v1/get-market-price"
     timestamp = get_timestamp()["timestamp"]
     headers = {"api-key": _get_api_key()}
     params = {"symbol": symbol,
@@ -66,6 +66,66 @@ def get_market_price(symbol, receive_window):
     resp = requests.get(url, params=params, headers=headers)
     return resp.content
 
+def generate_address(symbol, receive_window):
+    url = base + "/v1/generate-deposit-wallet-address"
+    timestamp = get_timestamp()["timestamp"]
+    sig_str = "َUSDT"
+    sig = signature.hashing.query_string(sig_str)
+    headers = {"api-key": _get_api_key()}
+    params = {"currency": "َUSDT",
+              "timestamp": timestamp,
+              "signature": sig,
+              "receive_window": receive_window}
+
+    resp = requests.post(url, params=params, headers=headers)
+    return resp.content
+
+#get-deposit-transaction-list
+
+def get_deposit_transaction_list(symbol, receive_window):
+    url = base + "/v1/get-deposit-transaction-list"
+    timestamp = get_timestamp()["timestamp"]
+    sig_str = "DOGE"
+    # sig = signature.hashing.query_string(sig_str)
+    headers = {"api-key": _get_api_key()}
+    params = {"page": "1",
+              "timestamp": timestamp,
+              # "signature": sig,
+              "receive_window": receive_window}
+
+    resp = requests.post(url, params=params, headers=headers)
+    return resp.content
+
+#/v1/get-withdraw-transaction-list
+def get_withdraw_transaction_list(symbol, receive_window):
+    url = base + "/v1/get-withdraw-transaction-list"
+    timestamp = get_timestamp()["timestamp"]
+    sig_str = "DOGE"
+    # sig = signature.hashing.query_string(sig_str)
+    headers = {"api-key": _get_api_key()}
+    params = {"page": "1",
+              "timestamp": timestamp,
+              # "signature": sig,
+              "receive_window": receive_window}
+
+    resp = requests.post(url, params=params, headers=headers)
+    return resp.content
+
+def get_reserve(symbol, receive_window):
+    url = base + "/v1/rapid/get-reserve"
+    timestamp = get_timestamp()["timestamp"]
+    sig_str = "SELL:1000:USDT/IRR:2000"
+    sig = signature.hashing.query_string(sig_str)
+    headers = {"api-key": _get_api_key()}
+    params = {"type": "SELL",
+              "amountFrom": "1000",
+              "timestamp": timestamp,
+              "pair": "USDT/IRR",
+              "signature": sig,
+              "receive_window": receive_window}
+
+    resp = requests.post(url, params=params, headers=headers)
+    return resp.content
 
 def get_market_price_all(receive_window):
     url = base + "/get-market-price"
@@ -80,23 +140,53 @@ def get_market_price_all(receive_window):
 # limit_or_market 1-LIMIT 2-MARKET
 # sell_or_buy 1-BUY 2-SELL
 def place_order(symbol, limit_or_market, price, sell_or_buy, qty, receive_window):
-    url = base + "/trade-bot"
-    timestamp = get_timestamp()["timestamp"]
-    headers = {"api-key": _get_api_key()}
-    # "Symbol:order_type:price:qty:type:timestamp:receive_window
-    sig = signature.hashing.query_string(
-        f"{symbol}:{limit_or_market}:{price}:{qty}:{sell_or_buy}:{timestamp}:{receive_window}")
-    data = {"timestamp": timestamp,
-            "receive_window": receive_window,
-            "symbol": symbol,
-            "order_type": limit_or_market,
-            "price": price,
-            "type": sell_or_buy,
-            "qty": qty,
-            "signature": sig}
+	print("limit Orders")
+	url = base + "/v1/trade-bot"
+	timestamp = get_timestamp()["timestamp"]
+	headers = {"api-key": _get_api_key()}
+	# "Symbol:order_type:price:qty:type:timestamp:receive_window
+	sig_str = f"{symbol}:{limit_or_market}:{price}:{qty}:{sell_or_buy}:{timestamp}:{receive_window}"
+	sig = signature.hashing.query_string(sig_str)
+	print(sig_str)
+	print(sig)
+	data = {"timestamp": timestamp,
+					"receive_window": receive_window,
+					"symbol": symbol,
+					"order_type": limit_or_market,
+					"price": price,
+					"type": sell_or_buy,
+					"qty": qty,
+					"signature": sig}
 
-    resp = requests.post(url, data=data, headers=headers)
-    return resp.content
+	resp = requests.post(url, data=data, headers=headers)
+	return resp.content
+
+def withdraw(currency_code, fromAddress, toAddress, network, amount, fromMemo, memo):
+	url = base + "/v1/create-withdraw-transaction"
+	timestamp = get_timestamp()["timestamp"]
+	headers = {"api-key": _get_api_key()}
+	# "Symbol:order_type:price:qty:type:timestamp:receive_window
+	sig_str = f"{fromAddress}:{toAddress}:{currency_code}:{network}:{amount}:20000"
+	print(sig_str)
+	sig = signature.hashing.query_string(sig_str)
+	print(sig_str)
+	print(sig)
+	print(timestamp)
+	data = {
+          timestamp: timestamp,
+         	"receive_window": "20000",
+					currency_code: currency_code,
+					fromAddress: fromAddress,
+					"fromMemo": "null",
+					toAddress: toAddress,
+					"memo": "null",
+					network: network,
+					amount: amount,
+          signature: sig}
+
+	print(url)
+	# resp = requests.post(url, data=data, headers=headers)
+	# return resp.content
 
 
 def cancel_user_trade(trade_id, receive_window):
@@ -126,6 +216,51 @@ def cancel_user_bulk_order(order_type, receive_window):
 
     resp = requests.get(url, params=params, headers=headers)
     return resp.content
+
+def place_order_by_amount(symbol, amount, sell_or_buy, receive_window):
+	print("Order By Amount")
+	url = base + "/trade-bot"
+	timestamp = get_timestamp()["timestamp"]
+	headers = {"api-key": _get_api_key()}
+	# "Symbol:order_type:order_by:amount:type:timestamp:receive_window"
+	sig_str = f"{symbol}:2:2:{amount}:{sell_or_buy}:{timestamp}:{receive_window}"
+	sig = signature.hashing.query_string(sig_str)
+	print(sig_str)
+	print(sig)
+	data = {"timestamp": timestamp,
+					"receive_window": receive_window,
+					"symbol": symbol,
+					"order_type": 2,
+					"order_by": 2,
+					"amount": amount,
+					"type": sell_or_buy,
+					"signature": sig}
+
+	resp = requests.post(url, data=data, headers=headers)
+	return resp.content
+
+
+def place_order_by_qty(symbol, qty, sell_or_buy, receive_window):
+	print("Order By QTY")
+	url = base + "/trade-bot"
+	timestamp = get_timestamp()["timestamp"]
+	headers = {"api-key": _get_api_key()}
+	# "Symbol:order_type:order_by:qty:type:timestamp:receive_window"
+	sig_str = f"{symbol}:2:1:{qty}:{sell_or_buy}:{timestamp}:{receive_window}"
+	sig = signature.hashing.query_string(sig_str)
+	print(sig_str)
+	print(sig)
+	data = {"timestamp": timestamp,
+				"receive_window": receive_window,
+				"symbol": symbol,
+				"order_type": 2,
+				"order_by": 1,
+				"type": sell_or_buy,
+				"qty": qty,
+				"signature": sig}
+
+	resp = requests.post(url, data=data, headers=headers)
+	return resp.content
 
 
 def _get_api_key():
